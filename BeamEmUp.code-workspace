@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"C_Cpp.default.includePath": [
+			"C:\\Users\\bcombee\\Documents\\Arduino\\libraries\\Arduboy2\\src",
+			"C:\\Users\\bcombee\\Documents\\ArduinoData\\packages\\arduino\\tools\\avr-gcc\\4.8.1-arduino5\\avr\\include"
+		]
+	}
+}
