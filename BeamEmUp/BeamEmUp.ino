@@ -1,6 +1,4 @@
 #include "Game.h"
 
-BeamEmUpGame game;
-
-void setup(void) { game.setup(); }
-void loop(void) { game.loop(); }
+void setup(void) { BeamEmUpGame::setup(); }
+void loop(void) { BeamEmUpGame::loop(); }
