@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 using Number = SFixed<7, 8>;
-using NumberU = UFixed<8, 8>;
+using BigNumber = SFixed<15, 8>;
 
 #include "BeamEmUp_bmp.h"
 #include "Physics.h"
@@ -44,39 +44,73 @@ const uint16_t squidFreqs[8] = {
     beep.freq(360), beep.freq(320), beep.freq(280), beep.freq(240),
 };
 
+struct Landscape {
+  // landscape scrolls left/right as a checkerboard
+  BigNumber x = 0;
+  static constexpr uint8_t topY = 61;
+  static constexpr uint8_t botY = 63;
+
+  BigNumber rock_x = 20;
+  Number rock_y = 55;
+  static constexpr int8_t rock_size = 8;
+
+  void move(Number dx) { x = x + dx; }
+
+  void draw() {
+    arduboy.drawFastHLine(0, botY, arduboy.width());
+
+    // convert x to integer in [0..31] range
+    // draw the panels to simulate movement
+    auto ix = x.getInteger() & 31;
+    for (int16_t i = -16; i < 128; i += 32) {
+      arduboy.drawFastHLine(i + ix, topY, 16);
+    }
+
+    // draw rock on landscape
+    auto drawn_rock_x = rock_x + x;
+    arduboy.fillRoundRect(drawn_rock_x.getInteger(), rock_y.getInteger(),
+                          rock_size, rock_size, 1);
+  }
+};
+
 struct SquidShip {
   Number x = 0;
   Number y = 0;
   uint8_t frame = 0;
   int8_t beam_height = 0;
-  static constexpr uint8_t x_max = arduboy.width() - squid_width;
-  static constexpr uint8_t y_max = arduboy.height() - squid_height;
+  static constexpr uint8_t x_min = 10;
+  static constexpr uint8_t y_min = 0;
+  static constexpr uint8_t x_max = arduboy.width() - squid_width - 10;
+  static constexpr uint8_t y_max = arduboy.height() - squid_height - 10;
   static constexpr int8_t beam_height_max = 20;
 
   void adjust_beam(int8_t delta) {
     beam_height += delta;
     if (beam_height < 0) {
       beam_height = 0;
-    }
-    else if (beam_height > beam_height_max) {
+    } else if (beam_height > beam_height_max) {
       beam_height = beam_height_max;
     }
   }
 
-  void move(Number dx, Number dy) {
+  Number move(Number dx, Number dy) {
+    Number push = 0;
     x += dx;
-    if (x < 0) {
-      x = 0;
+    if (x < x_min) {
+      push = x_min - x;
+      x = x_min;
     } else if (x > x_max) {
+      push = x_max - x;
       x = x_max;
     }
     y += dy;
-    if (y < 0) {
-      y = 0;
+    if (y < y_min) {
+      y = y_min;
     } else if (y > y_max) {
       y = y_max;
     }
     frame = (frame + 1) % 4;
+    return push;
   }
 
   void draw() {
@@ -84,10 +118,10 @@ struct SquidShip {
     sprites.drawSelfMasked(ix, iy, squid_img, frame >= 2);
     if (beam_height > 0) {
       arduboy.drawLine(ix + 2, iy + squid_height, ix,
-                       min(iy + squid_height + beam_height, arduboy.height()));
+                       min(iy + squid_height + beam_height, 60));
       arduboy.drawLine(ix + squid_width - 3, iy + squid_height,
                        ix + squid_width - 1,
-                       min(iy + squid_height + beam_height, arduboy.height()));
+                       min(iy + squid_height + beam_height, 60));
     }
   }
 };
@@ -121,6 +155,7 @@ struct BeamEmUpGame {
   } state = INITIAL_LOGO;
 
   SquidShip squid;
+  Landscape landscape;
 
   void enter_state(GameState newState) {
     arduboy.frameCount = 0;
@@ -158,19 +193,19 @@ struct BeamEmUpGame {
 
   void game_active() {
     if (arduboy.pressed(RIGHT_BUTTON)) {
-      squid.move(1, 0);
+      landscape.move(squid.move(1, 0));
     }
     if (arduboy.pressed(LEFT_BUTTON)) {
-      squid.move(-1, 0);
+      landscape.move(squid.move(-1, 0));
     }
     if (arduboy.pressed(UP_BUTTON)) {
-      squid.move(0, 1);
+      landscape.move(squid.move(0, -1));
     }
     if (arduboy.pressed(DOWN_BUTTON)) {
-      squid.move(0, -1);
+      landscape.move(squid.move(0, 1));
     }
 
-    squid.adjust_beam(arduboy.pressed(A_BUTTON) ? 1 : -2);
+    squid.adjust_beam(arduboy.pressed(A_BUTTON) ? 2 : -4);
     if (squid.beam_height) {
       beep.tone(squidFreqs[(arduboy.frameCount >> 2) & 7]);
     } else {
@@ -187,6 +222,7 @@ struct BeamEmUpGame {
 
   void draw_game_objects() {
     arduboy.clear();
+    landscape.draw();
     squid.draw();
   }
 
