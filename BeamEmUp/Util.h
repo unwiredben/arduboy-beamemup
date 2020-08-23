@@ -20,3 +20,13 @@
 
 constexpr uint8_t center_x(uint8_t w) { return (Arduboy2::width() - w) / 2; }
 constexpr uint8_t center_y(uint8_t h) { return (Arduboy2::height() - h) / 2; }
+
+template <class T>
+constexpr bool in_open_range(const T &val, const T &bottom, const T &top) {
+  return val >= bottom && val < top;
+}
+
+template <class T>
+constexpr bool in_closed_range(const T &val, const T &bottom, const T &top) {
+  return val >= bottom && val <= top;
+}
