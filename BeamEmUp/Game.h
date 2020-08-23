@@ -336,8 +336,7 @@ void setup(void) {
   arduboy.begin();
   beep.begin();
   arduboy.setFrameRate(30);
-  // FIXME - restore - enter_state(INITIAL_LOGO);
-  enter_state(GAME_ACTIVE);
+  enter_state(INITIAL_LOGO);
 }
 
 void loop(void) {
