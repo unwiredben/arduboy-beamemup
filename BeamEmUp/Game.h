@@ -28,6 +28,7 @@ using BigNumber = SFixed<15, 8>;
 #include "Util.h"
 
 #include "BeamEmUp_bmp.h"
+#include "cow_bmp.h"
 #include "press_a_bmp.h"
 #include "squid_bmp.h"
 #include "unwired_logo_bmp.h"
@@ -68,7 +69,7 @@ struct Window : public GameObject {
 } window;
 
 struct Landscape {
-  static constexpr uint8_t topY = 61;
+  static constexpr uint8_t topY = 62;
   static constexpr uint8_t botY = 63;
 
   void draw(BigNumber win_x) {
@@ -76,34 +77,33 @@ struct Landscape {
 
     // convert x to integer in [0..31] range
     // draw the panels to simulate movement
-    auto ix = win_x.getInteger() & 31;
-    for (int16_t i = -16 - ix; i < 128; i += 32) {
-      arduboy.drawFastHLine(i, topY, 16);
+    auto ix = win_x.getInteger() % 18;
+    for (int16_t i = -4 - ix; i < 128; i += 18) {
+      arduboy.drawFastHLine(i, topY, 4);
     }
   }
 } landscape;
 
-struct Rock : public GameObject {
-  constexpr static int rock_size = 8;
-  Rock(BigNumber x_pos) {
+struct Cow : public GameObject {
+  Cow(BigNumber x_pos) {
     x = x_pos;
-    y = 64 - rock_size - 2;
+    y = arduboy.height() - cow_height;
   }
 
   void draw(BigNumber win_x) {
     // draw rock on landscape
-    auto drawn_x = x - win_x;
+    auto drawn_x = (x - win_x).getInteger();
     if (drawn_x < 128) {
-      arduboy.fillRoundRect(drawn_x.getInteger(), y.getInteger(), rock_size,
-                            rock_size, 1);
+      auto frame = ((arduboy.frameCount >> 3) + x.getInteger()) % 3;
+      sprites.drawPlusMask(drawn_x, y.getInteger(), animcow_plus_mask, frame);
     }
   }
-} rocks[6] = {Rock(20), Rock{70}, Rock{110}, Rock{170}, Rock{225}, Rock{300}};
+} cows[6] = {Cow(20), Cow{70}, Cow{110}, Cow{170}, Cow{225}, Cow{300}};
 
 struct SquidShip : public GameObject {
   uint8_t frame = 0;
   int8_t beam_height = 0;
-  static constexpr int8_t beam_height_max = 20;
+  static constexpr int8_t beam_height_max = 14;
 
   SquidShip() {
     x_min = 10 + window_x_min;
@@ -111,7 +111,7 @@ struct SquidShip : public GameObject {
     y_max = arduboy.height() - squid_height - 10;
   }
 
-  void nextFrame() { frame = (frame + 1) % 4;}
+  void nextFrame() { frame = (frame + 1) % 4; }
 
   void adjust_beam(int8_t delta) {
     beam_height += delta;
@@ -168,6 +168,7 @@ enum GameState {
 
 void enter_state(GameState newState) {
   arduboy.frameCount = 0;
+  beep.noTone();
   state = newState;
 
   if (newState == GAME_ACTIVE) {
@@ -233,22 +234,28 @@ void game_active() {
     beep.noTone();
   }
 
+  // FIXME: handle intersection between beam and cows - if beam is in cow, cow
+  // moves toward x and y position of squid
+
+  // FIXME: if cow is not in beam, cow starts moving toward ground, gaining
+  // velocity.  If contact with ground is too fast, cow becomes particle system
+  // and dies.
+
   arduboy.clear();
   landscape.draw(window.x);
   squid.draw(window.x);
-  for (auto &r : rocks) {
-    r.draw(window.x);
+  for (auto &cow : cows) {
+    cow.draw(window.x);
   }
 
-  // debug code to show window x value
-  arduboy.setCursor(0, 0);
-  arduboy.print("winX ");
-  arduboy.print(window.x.getInteger());
-  arduboy.print(" sqdX ");
-  arduboy.print(squid.x.getInteger());
+  // arduboy.setCursor(0, 0);
+  // arduboy.print(F("winX "));
+  // arduboy.print(window.x.getInteger());
+  // arduboy.print(F(" sqdX "));
+  // arduboy.print(squid.x.getInteger());
 
   // temporary change to allow resetting
-  if (arduboy.justPressed(B_BUTTON)) {
+  if (arduboy.pressed(A_BUTTON) && arduboy.justPressed(B_BUTTON)) {
     enter_state(BeamEmUpGame::INITIAL_LOGO);
   }
 }
