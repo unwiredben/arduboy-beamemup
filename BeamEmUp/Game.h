@@ -139,7 +139,7 @@ struct Landscape {
   }
 } landscape;
 
-uint8_t num_cows = 3;
+uint8_t num_cows = 0;
 constexpr uint8_t max_num_cows = 12;
 
 struct Cow : public GameObject {
@@ -441,19 +441,22 @@ void game_active() {
   meteor.draw(window.x);
 
   // draw how many cows are in the beam
-  uint8_t score_x = WIDTH - (cows_text_width + of_text_width + 6 + (5 * 4));
+  uint8_t score_width = cows_text_width + of_text_width + 3 + 3 + 5 + 5 +
+    (cows_in_beam >= 10) * 5 + (num_cows >= 10) * 5;
+  uint8_t score_x = WIDTH - score_width - 1;
+
   if (cows_in_beam >= 10) {
     sprites.drawOverwrite(score_x, 0, font4x6_digits, cows_in_beam / 10);
+    score_x += 4 + 1;
   }
-  score_x += 4 + 1;
   sprites.drawOverwrite(score_x, 0, font4x6_digits, cows_in_beam % 10);
   score_x += 4 + 3;
   sprites.drawOverwrite(score_x, 1, of_text_img, 0);
   score_x += of_text_width + 3;
   if (num_cows >= 10) {
     sprites.drawOverwrite(score_x, 0, font4x6_digits, num_cows / 10);
+    score_x += 4 + 1;
   }
-  score_x += 4 + 1;
   sprites.drawOverwrite(score_x, 0, font4x6_digits, num_cows % 10);
   score_x += 4 + 3;
   sprites.drawOverwrite(score_x, 1, cows_text_img, 0);
