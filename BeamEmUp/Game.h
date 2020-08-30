@@ -25,6 +25,7 @@ using BigNumber = SFixed<15, 8>;
 #include "Util.h"
 
 #include "BeamEmUp_bmp.h"
+#include "Font4x6.h"
 #include "cow_bmp.h"
 #include "press_a_bmp.h"
 #include "squid_bmp.h"
@@ -78,8 +79,7 @@ struct GameObject {
       if (x < x_min) {
         x = x_min;
         x_vel = -x_vel;
-      }
-      else if (x > x_max) {
+      } else if (x > x_max) {
         x = x_max;
         x_vel = -x_vel;
       }
@@ -93,8 +93,7 @@ struct GameObject {
       if (y < y_min) {
         y = y_min;
         y_vel = -y_vel;
-      }
-      else if (y > y_max) {
+      } else if (y > y_max) {
         y = y_max;
         y_vel = -y_vel * CoefficientOfRestitution;
       }
@@ -159,7 +158,8 @@ struct Cow : public GameObject {
   void draw(BigNumber win_x) {
     auto drawn_x = (x - win_x).getInteger();
     if (drawn_x < 128) {
-      sprites.drawPlusMask(drawn_x, y.getInteger(), animcow_plus_mask, frame + (x_vel > 0 ? 3 : 0));
+      sprites.drawPlusMask(drawn_x, y.getInteger(), animcow_plus_mask,
+                           frame + (x_vel > 0 ? 3 : 0));
       if ((arduboy.frameCount & 3) == 0 && ++frame == 3) {
         frame = 0;
       }
@@ -292,19 +292,19 @@ void game_active() {
   for (auto &cow : cows) {
     auto cow_center = cow.x + cow_width / 2;
     if (squid.beam_height &&
-        in_open_range(cow_center, squid.x, squid.x + squid_width) &&
+        in_open_range(cow_center, squid.x - 1, squid.x + squid_width + 1) &&
         in_open_range(cow.y, squid.y + squid_height,
                       squid.y + squid_height + squid.beam_height)) {
-      cow.y_vel = -1 - CoefficientOfGravity;
+      cow.y_vel = -0.8 - CoefficientOfGravity;
       if (cow_center < squid_center) {
-        cow.x_vel = 1;
+        cow.x_vel = 1.2;
       } else if (cow_center > squid_center) {
-        cow.x_vel = -1;
+        cow.x_vel = -1.2;
       }
     }
     // cows on the ground occasionally start to wander
-    if (cow.y == Cow::default_y && random(8) == 0) {
-      cow.x_vel = (BigNumber(random(16)) - 8) / 8;
+    if (cow.y == Cow::default_y && random(16) == 0) {
+      cow.x_vel = (BigNumber(random(32)) - 16) / 8;
     }
   }
   for (auto &cow : cows) {
