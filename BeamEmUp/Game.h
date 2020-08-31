@@ -17,6 +17,7 @@
 #pragma once
 
 #include <Arduboy2.h>
+#include <ArduboyTones.h>
 
 #include <FixedPoints.h>
 using Number = SFixed<7, 8>;
@@ -38,8 +39,8 @@ using BigNumber = SFixed<15, 16>;
 
 /* global definitions for APIs */
 Arduboy2 arduboy;
+ArduboyTones sound(arduboy.audio.enabled);
 Sprites sprites;
-BeepPin1 beep;
 
 namespace BeamEmUpGame {
 
@@ -66,6 +67,9 @@ constexpr Number InputForce = 0.25;
 // maximum x coordinate for left edge of the screen
 constexpr BigNumber window_x_min = 0;
 constexpr BigNumber window_x_max = 4 * WIDTH;
+
+// how much left/right screen margin to keep
+constexpr BigNumber squid_margin = 16;
 
 struct GameObject {
   BigNumber x = 0, x_min = window_x_min, x_max = window_x_max, x_vel = 0;
@@ -141,7 +145,7 @@ struct Landscape {
 } landscape;
 
 uint8_t num_cows = 0;
-constexpr uint8_t max_num_cows = 12;
+constexpr uint8_t max_num_cows = 15;
 
 struct Cow : public GameObject {
   static constexpr uint8_t default_y = HEIGHT - cow_height;
@@ -150,8 +154,8 @@ struct Cow : public GameObject {
   uint8_t moo_frame;
 
   Cow() {
-    x_min = 8 + window_x_min;
-    x_max = window_x_max - cow_width - 8;
+    x_min = squid_margin - 2 + window_x_min;
+    x_max = window_x_max - cow_width - squid_margin + 2; 
     y_max = default_y;
   }
 
@@ -194,8 +198,8 @@ struct SquidShip : public GameObject {
   static constexpr uint8_t num_penalty_frames = 15;
 
   SquidShip() {
-    x_min = 10 + window_x_min;
-    x_max = window_x_max - squid_width - 10;
+    x_min = squid_margin + window_x_min;
+    x_max = window_x_max - squid_width - squid_margin;
     y_min = 8;
     y_max = HEIGHT - squid_height - 10;
   }
@@ -257,9 +261,15 @@ struct Meteor : public GameObject {
   }
 
   void reset() {
-    x = x_max;
-    x_vel = -2.5;
-    y = squid.y;
+    // start at opposite end from the squid
+    if (squid.x < (window_x_max / 2)) {
+      x = x_max;
+      x_vel = -2.5;
+    } else {
+      x = x_min;
+      x_vel = 2.5;
+    }
+    move(x, squid.y + randomSFixed(Number(-8), Number(8)));
   }
 
   void applyXVelocity() {
@@ -300,7 +310,7 @@ enum GameState {
 
 void enter_state(GameState newState) {
   arduboy.frameCount = 0;
-  beep.noTone();
+  sound.noTone();
   state = newState;
 
   if (newState == TITLE_SCREEN) {
@@ -320,7 +330,7 @@ void initial_logo() {
     arduboy.clear();
     arduboy.drawCompressed(0, 0, unwiredgames_logo_cmpimg);
   }
-  if (arduboy.frameCount > 60) {
+  if (arduboy.frameCount > 45) {
     enter_state(TITLE_SCREEN);
   }
 }
@@ -355,8 +365,7 @@ bool meteor_collision_with_squid() {
 }
 
 constexpr static uint16_t squidFreqs[8] = {
-    beep.freq(200), beep.freq(240), beep.freq(280), beep.freq(320),
-    beep.freq(360), beep.freq(320), beep.freq(280), beep.freq(240),
+    200, 240, 280, 320, 360, 320, 280, 240,
 };
 
 void game_active() {
@@ -379,26 +388,22 @@ void game_active() {
   }
   squid.applyXVelocity();
 
-  window.keep_obj_in_window(squid.x, squid_width, 10);
+  window.keep_obj_in_window(squid.x, squid_width, 16);
 
   // if meteor collides, apply x_vel change and drop beam
   if (meteor_collision_with_squid()) {
     squid.meteorHit();
-    squid.x_vel += meteor.x_vel;
-    meteor.x_vel = -meteor.x_vel;
-    // if (in_open_range(meteor.y + 1, squid.y, squid.y + squid_height / 2)) {
-    //   squid.adjust(0, -squid_height / 2);
-    // } else {
-    //   squid.adjust(0, squid_height / 2);
-    // }
+    squid.x_vel = meteor.x_vel * 1.5;
+    meteor.reset();
+    sound.tone(100, 256, 80, 128, 100, 256);
+  } else {
+    meteor.applyXVelocity();
   }
-  meteor.applyXVelocity();
 
   squid.adjust_beam(arduboy.pressed(A_BUTTON) ? 2 : -4);
   if (squid.beam_height) {
-    beep.tone(squidFreqs[(arduboy.frameCount >> 2) & 7]);
-  } else {
-    beep.noTone();
+    // 137/1024 ~ 4 frames of animation
+    sound.tone(squidFreqs[(arduboy.frameCount >> 2) & 7], 137);
   }
 
   auto squid_center = squid.x + squid_width / 2;
@@ -472,6 +477,11 @@ void game_active() {
   }
 } // namespace BeamEmUpGame
 
+constexpr static uint16_t level_theme[] PROGMEM = {
+    0x01EE, 0x00AF, 0x01B8, 0x00AF, 0x0188, 0x00AF, 0x01B8,
+    0x00AF, 0x024B, 0x00AF, 0x01EE, 0x015E, 0x024B, 0x00AF,
+    0x01EE, 0x015E, 0x015D, 0x00AF, 0x0188, 0x00AF, TONES_END};
+
 void level_complete() {
   if (arduboy.frameCount == 1) {
     num_cows = min(num_cows + 1, max_num_cows);
@@ -480,17 +490,18 @@ void level_complete() {
     // show "level complete"
     constexpr uint8_t x = (WIDTH - got_em_all_width) / 2;
     constexpr uint8_t y = (HEIGHT - got_em_all_height) / 2;
-    arduboy.fillRect(x - 1, y - 1, got_em_all_width + 2, got_em_all_height + 2, BLACK);
+    arduboy.fillRect(x - 1, y - 1, got_em_all_width + 2, got_em_all_height + 2,
+                     BLACK);
     arduboy.drawCompressed(x, y, got_em_all_cmpimg);
+    sound.tones(level_theme);
   }
-  if (arduboy.frameCount == 75) {
+  if (arduboy.frameCount > 75 && !sound.playing()) {
     enter_state(GAME_ACTIVE);
   }
 }
 
 void setup(void) {
   arduboy.begin();
-  beep.begin();
   arduboy.setFrameRate(30);
   enter_state(INITIAL_LOGO);
 }
