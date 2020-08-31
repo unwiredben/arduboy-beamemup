@@ -27,6 +27,7 @@ using BigNumber = SFixed<15, 16>;
 #include "BeamEmUp_bmp.h"
 #include "Font4x6.h"
 #include "cow_bmp.h"
+#include "got_em_all_bmp.h"
 #include "meteor_bmp.h"
 #include "moo_bmp.h"
 #include "objective_bmp.h"
@@ -319,7 +320,7 @@ void initial_logo() {
     arduboy.clear();
     arduboy.drawCompressed(0, 0, unwiredgames_logo_cmpimg);
   }
-  if (arduboy.frameCount > 30) {
+  if (arduboy.frameCount > 60) {
     enter_state(TITLE_SCREEN);
   }
 }
@@ -442,7 +443,7 @@ void game_active() {
 
   // draw how many cows are in the beam
   uint8_t score_width = cows_text_width + of_text_width + 3 + 3 + 5 + 5 +
-    (cows_in_beam >= 10) * 5 + (num_cows >= 10) * 5;
+                        (cows_in_beam >= 10) * 5 + (num_cows >= 10) * 5;
   uint8_t score_x = WIDTH - score_width - 1;
 
   if (cows_in_beam >= 10) {
@@ -477,8 +478,12 @@ void level_complete() {
   }
   if (arduboy.frameCount == 15) {
     // show "level complete"
+    constexpr uint8_t x = (WIDTH - got_em_all_width) / 2;
+    constexpr uint8_t y = (HEIGHT - got_em_all_height) / 2;
+    arduboy.fillRect(x - 1, y - 1, got_em_all_width + 2, got_em_all_height + 2, BLACK);
+    arduboy.drawCompressed(x, y, got_em_all_cmpimg);
   }
-  if (arduboy.frameCount == 60) {
+  if (arduboy.frameCount == 75) {
     enter_state(GAME_ACTIVE);
   }
 }
