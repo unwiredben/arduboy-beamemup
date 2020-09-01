@@ -488,8 +488,8 @@ void level_complete() {
   }
   if (arduboy.frameCount == 15) {
     // show "level complete"
-    constexpr uint8_t x = (WIDTH - got_em_all_width) / 2;
-    constexpr uint8_t y = (HEIGHT - got_em_all_height) / 2;
+    constexpr uint8_t x = center_x(got_em_all_width);
+    constexpr uint8_t y = center_y(got_em_all_height);
     arduboy.fillRect(x - 1, y - 1, got_em_all_width + 2, got_em_all_height + 2,
                      BLACK);
     arduboy.drawCompressed(x, y, got_em_all_cmpimg);
