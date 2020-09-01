@@ -17,4 +17,6 @@ this came back to me.  I was also inspired by the Atari 2600 game "Cosmic Ark", 
 critters, but didn't have much physics.  I originally wanted the cows to splat if dropped from the top
 of the screen, but I think the subtle bouncing is more friendly to the player.
 
+Discussion of the game is at <a href="https://community.arduboy.com/t/beam-em-up-game-jam-5/9200/10">this Arduboy Community thread.</a>
+
 <a href="https://felipemanga.github.io/ProjectABE/?url=https://github.com/unwiredben/arduboy-beamemup/raw/master/BeamEmUp/BeamEmUp.hex">Play it in your browser using ProjectABE!</a>
