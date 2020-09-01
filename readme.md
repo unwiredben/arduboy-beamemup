@@ -6,9 +6,9 @@ a Arduboy game developed by Ben Combee
 
 Released under Apache 2.0 license
 
-Arduboy2 library from https://github.com/MLXXXp/Arduboy2
-FixedPoint library from https://github.com/Pharap/FixedPointsArduino/
-ArduboyTones library from https://github.com/MLXXXp/ArduboyTones
+* Arduboy2 library from https://github.com/MLXXXp/Arduboy2
+* FixedPoint library from https://github.com/Pharap/FixedPointsArduino/
+* ArduboyTones library from https://github.com/MLXXXp/ArduboyTones
 
 This game is based on an idea that I've had for a very long time.  Back in the late 90's, I'd wanted
 to make a screensaver for my Windows 98 machine that involved saucers going around and beaming up cows
