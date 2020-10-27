@@ -38,7 +38,7 @@ using BigNumber = SFixed<15, 16>;
 #include "unwired_logo_bmp.h"
 
 /* global definitions for APIs */
-Arduboy2 arduboy;
+Arduboy2Base arduboy;
 ArduboyTones sound(arduboy.audio.enabled);
 Sprites sprites;
 
