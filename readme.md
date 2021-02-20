@@ -13,7 +13,7 @@ of the screen, but I think the subtle bouncing is more friendly to the player.
 
 Discussion of the game is at <a href="https://community.arduboy.com/t/beam-em-up-game-jam-5/9200/10">this Arduboy Community thread.</a>
 
-<a href="https://felipemanga.github.io/ProjectABE/?url=https://github.com/unwiredben/arduboy-beamemup/raw/master/BeamEmUp/BeamEmUp.hex&skin=arduboy">Play it in your browser using ProjectABE!</a>
+<a href="https://felipemanga.github.io/ProjectABE/?url=https://github.com/unwiredben/arduboy-beamemup/raw/main/BeamEmUp/BeamEmUp.hex&skin=arduboy">Play it in your browser using ProjectABE!</a>
 
 ## LICENSE
 
