@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2020 Ben Combee (@unwiredben)
+   Copyright (C) 2020-2022 Ben Combee (@unwiredben)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,8 +13,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-
-#pragma once
 
 #include <Arduboy2.h>
 #include <ArduboyTones.h>
@@ -534,3 +532,6 @@ void loop(void) {
 }
 
 } // namespace BeamEmUpGame
+
+void setup(void) { BeamEmUpGame::setup(); }
+void loop(void) { BeamEmUpGame::loop(); }
