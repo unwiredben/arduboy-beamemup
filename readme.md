@@ -21,6 +21,10 @@ Arduboy Community thread.</a>
 href="https://felipemanga.github.io/ProjectABE/?url=https://github.com/unwiredben/arduboy-beamemup/raw/main/BeamEmUp/BeamEmUp.hex&skin=arduboy">Play
 it in your browser using ProjectABE!</a>
 
+There are two main branches in GitHub.  The "main" branch is setup for
+building in the Arduino IDE, while the "main-platformio" branch is setup for
+building in the PlatformIO system.
+
 ## LICENSE
 
 Copyright (C) 2020-2022, Ben Combee \
